@@ -1,7 +1,10 @@
+import { Person, dbApiCalls } from './firestore.js';
+
 // listen for auth status changes
 auth.onAuthStateChanged(user => {
     if (user){
-        console.log('User logged in: ', user);
+        var uid = auth.currentUser.uid;
+        console.log('User logged in: ', uid);
     } else {
         console.log('User logged out: ', user);
     }
@@ -13,14 +16,28 @@ const signupForm = document.querySelector('#signup-form');
 signupForm.addEventListener('submit', (e) => {
   e.preventDefault();
   
+  const name = signupForm['signup-name'].value;
   const email = signupForm['signup-email'].value;
   const password = signupForm['signup-password'].value;
+  const isProfessor = signupForm["signup-role"][0].checked;
+
+  var role = '';
+  var user = '';
 
   auth.createUserWithEmailAndPassword(email, password).then(cred => {
     const modal = document.querySelector('#modal-signup');
-    // close the modal and reset the form
+    var uid = auth.currentUser.uid;
+
     M.Modal.getInstance(modal).close();
     signupForm.reset();
+
+    if(isProfessor)
+        role = 'p';
+    else
+        role = 'a';
+    
+    user = new Person(uid, name, email, role, {'seg': {}, 'ter': {}, 'qua':{}, 'qui': {}, 'sex':{}});
+    dbApiCalls.post(user);
   });
 });
 
